@@ -346,6 +346,17 @@
                 setSaving(false);
             };
 
+            const handleClearHistory = async () => {
+                if (!confirm("确定要永久抹除 AI 对你最新的一段记忆吗？（此操作不可逆，清空后请记得点击上方‘保存并注入核心’重置 AI 状态）")) return;
+                try {
+                    const res = await fetch(`${API_BASE}/clear_history/${TG_USER_ID}`, { method: 'DELETE' });
+                    if (res.ok) alert("🧠 记忆已重置，AI 现已处于初见状态");
+                    else alert("❌ 清空失败，后端响应异常");
+                } catch (err) {
+                    alert("❌ 无法连接到后端，请检查设置页面是否已绿灯通畅");
+                }
+            };
+
             const InputSetting = ({ label, field, type="text", placeholder, onBlur }) => (
                 <div className="mb-5">
                     <label className="block text-[11px] font-semibold text-ceramic-400 uppercase tracking-wider mb-2 ml-1">{label}</label>
