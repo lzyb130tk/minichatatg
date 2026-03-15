@@ -86,7 +86,14 @@
             TG_USER_ID = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
         }
 
-        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8000/api' : '/api';
+        // 生产环境下（比如挂在 GitHub Pages 上），这里的 API_BASE 需要指向你跑着 FastAPI 的公网地址
+        // 例如 'https://your-ngrok-domain.ngrok.io/api'，如果在本地调试，则用 localhost
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // 🚨非常重要：请要求用户如果部署在 GitHub Pages，必须在这里写死他的后端穿透地址！
+        const PRODUCTION_API_URL = 'https://huge-bananas-send.loca.lt/api'; // <--- 这里填入你的 ngrok 或者服务区域名
+        
+        const API_BASE = isLocalhost ? 'http://localhost:8000/api' : PRODUCTION_API_URL;
 
         // ============================== 首页 ==============================
         function Home({ botData }) {
