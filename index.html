@@ -117,8 +117,9 @@
                     <h1 className="text-2xl font-semibold mb-2 text-ceramic-900 tracking-tight">
                         {botData?.bot_name || 'AI 守护者'}
                     </h1>
-                    <p className="text-ceramic-400 text-sm mb-12 flex items-center">
-                        <i className="ph ph-plugs-connected mr-2"></i> 状态：在线并准备就绪
+                    <p className={`text-sm mb-12 flex items-center ${botData ? 'text-green-500' : 'text-red-500 animate-pulse'}`}>
+                        <i className="ph ph-plugs-connected mr-2"></i> 
+                        {botData ? '核心连接通畅：已准备就绪' : '连接后端断开，请检查电脑是否开启服务...'}
                     </p>
 
                     <div className="w-full max-w-sm rounded-[1.5rem] glass-card shadow-swiss p-5 mb-6 hover:shadow-swiss-hover transition-shadow">
@@ -299,9 +300,14 @@
             };
 
             const handleSave = async () => {
+                if (!formData.api_base_url || !formData.api_key) {
+                    if (window.Telegram?.WebApp?.showAlert) window.Telegram.WebApp.showAlert("请先填写大模型 API URL 和 API Key！");
+                    else alert("请先填写大模型 API URL 和 API Key！");
+                    return;
+                }
                 setSaving(true);
                 try {
-                    await fetch(`${API_BASE}/user/${TG_USER_ID}/settings`, {
+                    const res = await fetch(`${API_BASE}/user/${TG_USER_ID}/settings`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -310,19 +316,32 @@
                         body: JSON.stringify({
                             api_base_url: formData.api_base_url,
                             api_key: formData.api_key,
-                            model_name: formData.model_name,
-                            system_prompt: formData.system_prompt,
-                            world_book: formData.world_book,
-                            buffer_seconds: parseInt(formData.buffer_seconds),
-                            typing_speed: parseFloat(formData.typing_speed),
-                            summarize_threshold: parseInt(formData.summarize_threshold)
+                            model_name: formData.model_name || '',
+                            system_prompt: formData.system_prompt || '',
+                            world_book: formData.world_book || '',
+                            buffer_seconds: parseInt(formData.buffer_seconds) || 10,
+                            typing_speed: parseFloat(formData.typing_speed) || 0.5,
+                            summarize_threshold: parseInt(formData.summarize_threshold) || 10
                         })
                     });
+                    
+                    if (!res.ok) throw new Error("保存失败，后端可能断开连接");
+                    
                     if (window.Telegram?.WebApp) {
-                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                        try {
+                            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                            window.Telegram.WebApp.showAlert('核心配置注入成功！');
+                        } catch(e) {}
+                    } else {
+                        alert("核心配置注入成功！");
                     }
-                    refreshData();
-                } catch (e) { console.error(e); }
+                    
+                    await refreshData();
+                } catch (e) {
+                    console.error(e);
+                    if (window.Telegram?.WebApp?.showAlert) window.Telegram.WebApp.showAlert(`存储异常: ${e.message}。请检查后端状态。`);
+                    else alert(`存储异常: ${e.message}。请检查后端状态。`);
+                }
                 setSaving(false);
             };
 
