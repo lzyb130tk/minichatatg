@@ -148,7 +148,9 @@
             const fetchMemories = async () => {
                 setLoading(true);
                 try {
-                    const res = await fetch(`${API_BASE}/memory/${TG_USER_ID}`);
+                    const res = await fetch(`${API_BASE}/memory/${TG_USER_ID}`, {
+                        headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                    });
                     const data = await res.json();
                     setItems(data.items || []);
                 } catch(e) { console.error(e); }
@@ -163,7 +165,10 @@
                 try {
                     await fetch(`${API_BASE}/memory/${TG_USER_ID}`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Bypass-Tunnel-Reminder': 'true'
+                        },
                         body: JSON.stringify({ content: newItem })
                     });
                     setNewItem("");
@@ -173,7 +178,10 @@
 
             const handleDelete = async (id) => {
                 try {
-                    await fetch(`${API_BASE}/memory/${TG_USER_ID}/${id}`, { method: 'DELETE' });
+                    await fetch(`${API_BASE}/memory/${TG_USER_ID}/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                    });
                     fetchMemories();
                 } catch(e) { console.error(e); }
             };
@@ -247,7 +255,10 @@
                 try {
                     const res = await fetch(`${API_BASE}/models`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Bypass-Tunnel-Reminder': 'true'
+                        },
                         body: JSON.stringify({ api_base_url: url, api_key: key })
                     });
                     const data = await res.json();
@@ -275,7 +286,10 @@
                 try {
                     await fetch(`${API_BASE}/user/${TG_USER_ID}/settings`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Bypass-Tunnel-Reminder': 'true'
+                        },
                         body: JSON.stringify({
                             api_base_url: formData.api_base_url,
                             api_key: formData.api_key,
@@ -421,7 +435,9 @@
 
             const fetchUser = async () => {
                 try {
-                    const res = await fetch(`${API_BASE}/user/${TG_USER_ID}`);
+                    const res = await fetch(`${API_BASE}/user/${TG_USER_ID}`, {
+                        headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                    });
                     const data = await res.json();
                     setBotData(data);
                 } catch(e) { console.error(e); }
