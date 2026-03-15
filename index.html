@@ -247,32 +247,49 @@
                 }
             }, [botData]);
 
-            // 拉取模型列表
+            // 拉取模型列表（既然你的大模型接口支持跨域，这里我们就直接让浏览器去原地址拉取，省掉一层麻烦！）
             const fetchModelsList = async (url, key) => {
                 if(!url || !key) return;
                 setFetchingModels(true);
                 setModelError("");
                 try {
-                    const res = await fetch(`${API_BASE}/models`, {
-                        method: 'POST',
+                    let baseUrlTrimmed = url.trim();
+                    if (baseUrlTrimmed.endsWith('/')) baseUrlTrimmed = baseUrlTrimmed.slice(0, -1);
+                    if (baseUrlTrimmed.endsWith('/chat/completions')) baseUrlTrimmed = baseUrlTrimmed.replace('/chat/completions', '');
+                    
+                    let modelsUrl = baseUrlTrimmed;
+                    if (!baseUrlTrimmed.endsWith('/v1') && !baseUrlTrimmed.includes('v1')) {
+                        modelsUrl = `${baseUrlTrimmed}/v1/models`;
+                    } else {
+                        modelsUrl = `${baseUrlTrimmed}/models`;
+                    }
+
+                    const res = await fetch(modelsUrl, {
+                        method: 'GET',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Bypass-Tunnel-Reminder': 'true'
-                        },
-                        body: JSON.stringify({ api_base_url: url, api_key: key })
+                            'Authorization': `Bearer ${key}`
+                        }
                     });
+                    
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    
                     const data = await res.json();
-                    if(data.status === 'success') {
-                        setModels(data.models);
+                    if (data && data.data && Array.isArray(data.data)) {
+                        const modelsIds = data.data.map(m => m.id).filter(id => id);
+                        modelsIds.sort();
+                        setModels(modelsIds);
                         // 如果当前没选模型而拉到了，自动设为第一个
-                        if(!formData.model_name && data.models.length > 0) {
-                            setFormData(prev => ({...prev, model_name: data.models[0]}));
+                        if(!formData.model_name && modelsIds.length > 0) {
+                            setFormData(prev => ({...prev, model_name: modelsIds[0]}));
                         }
                     } else {
-                        setModelError(data.message || "拉取失败");
+                        setModelError("数据格式不是标准的模型数组");
                     }
                 } catch(e) { 
-                    setModelError("请求异常，请检查网络或跨域设置");
+                    setModelError("浏览器直接请求被拒绝或网络失败(可能是跨域拦截)");
+                    console.error(e);
                 }
                 setFetchingModels(false);
             };
