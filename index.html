@@ -91,7 +91,7 @@
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         
         // 🚨非常重要：请要求用户如果部署在 GitHub Pages，必须在这里写死他的后端穿透地址！
-        const PRODUCTION_API_URL = 'https://simply-millennium-place-bring.trycloudflare.com/api'; // <--- 这里填入你的 VPS 公网地址
+        const PRODUCTION_API_URL = 'https://myatgb.zeabur.app/api'; // <--- 这里填入你的 Zeabur 公网地址
         
         const API_BASE = isLocalhost ? 'http://localhost:8000/api' : PRODUCTION_API_URL;
 
@@ -321,7 +321,8 @@
                             world_book: formData.world_book || '',
                             buffer_seconds: parseInt(formData.buffer_seconds) || 10,
                             typing_speed: parseFloat(formData.typing_speed) || 0.5,
-                            summarize_threshold: parseInt(formData.summarize_threshold) || 10
+                            summarize_threshold: parseInt(formData.summarize_threshold) || 10,
+                            max_context_count: parseInt(formData.max_context_count) || 15
                         })
                     });
                     
@@ -446,7 +447,37 @@
                             <InputSetting label="缓冲感知 (秒)" field="buffer_seconds" type="number" />
                             <InputSetting label="打字速度/字" field="typing_speed" type="number" />
                         </div>
+                        <div className="mt-4 mb-2">
+                            <label className="block text-[11px] font-semibold text-ceramic-400 uppercase tracking-wider mb-2 ml-1 flex justify-between">
+                                <span>上下文携带量 ({formData.max_context_count || 15} 条)</span>
+                                <span className="text-accent font-bold">建议 10-20</span>
+                            </label>
+                            <input 
+                                type="range" 
+                                min="1" 
+                                max="50" 
+                                step="1"
+                                className="w-full accent-accent h-2 bg-ceramic-200 rounded-lg appearance-none cursor-pointer"
+                                value={formData.max_context_count || 15}
+                                onChange={(e) => handleChange("max_context_count", parseInt(e.target.value))}
+                            />
+                            <div className="flex justify-between mt-1 px-1">
+                                <span className="text-[10px] text-ceramic-400">极省 (1条)</span>
+                                <span className="text-[10px] text-ceramic-400">大记忆 (50条)</span>
+                            </div>
+                        </div>
                         <InputSetting label="触发记忆总结条数阈值" field="summarize_threshold" type="number" />
+                        
+                        <div className="mt-6 pt-6 border-t border-ceramic-100">
+                             <button 
+                                onClick={handleClearHistory}
+                                className="w-full bg-red-50/50 hover:bg-red-50 text-red-500 py-3 rounded-2xl text-sm font-bold transition-all border border-red-100 shadow-sm flex items-center justify-center gap-2"
+                             >
+                                <i className="ph ph-trash-simple text-lg"></i>
+                                重置当前对话记忆
+                             </button>
+                             <p className="text-[10px] text-ceramic-400 mt-2 text-center px-4">该操作将永久删除此账号与 AI 最近的对话明细，但不会影响核心记忆点。</p>
+                        </div>
                     </div>
 
                     <button 
